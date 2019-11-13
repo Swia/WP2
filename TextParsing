@@ -1,0 +1,48 @@
+Dim strLine, strContent, outFile, objFSO, objFile, strLineWithData, i, NextLineFlag, Numbers, Symbol, objFSO2 
+Dim counter, k, j, description, flagDescription, commaCounter, inLineChecker, NumberCatcher, strFile, resultList, counterChecker   
+dim arr_number(30), arrNumber 
+resultList  = "C:\Users\bezrukov_mg\Documents\Parser\Stage3 TextParsing\resultList.txt"
+For j = 23 To 86
+	strFile = "C:\Users\bezrukov_mg\Documents\Parser\Stage3 TextParsing\index2\Акт исследования c ВП №1" & j & ".docx"
+	Set oWord = CreateObject("Word.Application")
+	oWord.Visible = false 
+	oWord.Documents.Open strFile
+	oWord.ActiveDocument.SaveAs strFile&".txt", 2
+	oWord.Quit
+	'Application.DisplayAlerts = wdAlertsNone
+	outFile = strFile&".txt"
+	Set objFSO = CreateObject("Scripting.FileSystemObject")
+	Set objFSO2 = CreateObject("Scripting.FileSystemObject")
+	Set objFile = objFSO.OpenTextFile(outFile)
+	Set outputFile = objFSO2.OpenTextFile( resultList, 8)
+	NumberCatcher = false
+	counter = 0 
+	Do While NOT objFile.AtEndOfStream
+	   strLine = objFile.ReadLine 
+	   For i = 1 To Len(strLine)
+			IF (Mid(strLine, i, 14) = "Рекламационный") Then
+				outputFile.Write Mid(strLine, 1, Len(strLine)) & vbCRLF
+			Elseif (Mid(strLine, i, 16) = "АКТ ИССЛЕДОВАНИЯ") Then	
+				outputFile.Write Mid(strLine, 1, Len(strLine)) & vbCRLF
+			Elseif (Mid(strLine, i, 4) = "8. П") Then 
+				outputFile.Write "________________________________" & vbCRLF
+				NumberCatcher = false
+				counterChecker = false				
+			Elseif NumberCatcher and (i = Len(strLine)) then 
+				if Mid(strLine, 1, Len(strLine)) <> "" then 
+					outputFile.Write Mid(strLine, 1, Len(strLine)) & vbCRLF
+				end if 	
+				i = Len(strLine)
+			Elseif (Mid(strLine, i, 4) = "7. У") Then 
+				NumberCatcher = true	
+			End if
+	   Next	
+	   counter = counter + 1 
+	Loop
+	outputFile.close
+	objFile.close
+	'objFSO.DeleteFile outFile 
+Next
+WScript.Echo "Finished." 
+'objDoc.Close
+'objWord.Quit
