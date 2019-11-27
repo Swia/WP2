@@ -1,65 +1,65 @@
-Dim CurrentDate, dateFromCell, deviceArray, CurrentHour, CurrentMinute, FileName
-Dim objFSO, endFlag, checkCounter, pathOfFile2, colorFont, TextToFind, arrLine
-Dim i, k, j
-On Error Resume Next
-Const xlUp = -4162
-
-'Set objFSO = CreateObject("Scripting.FileSystemObject")
-'Set objFSO2 = CreateObject("Scripting.FileSystemObject")
-'	outFile = "Z:\Рекламации\Flash\Перенос\OTK\VBS\FindComment\outData.xlsx"
-'Set objFile = objFSO.CreateTextFile(outFile,True)
-Set objExcel = CreateObject("Excel.Application") 
-	objExcel.visible = False 
-
-Set objWorkbook1 = objExcel.Workbooks.Open("C:\Users\bezrukov_mg\Documents\FindComment\Поставки и рекламации модулей.xlsx") 
-Set objWorkbook2 = objExcel.Workbooks.Open("C:\Users\bezrukov_mg\Documents\FindComment\Поставки.xlsx")
- 
-Set objSheet1 = objWorkbook1.Worksheets(4)
-Set objSheet2 = objWorkbook2.Worksheets(1)
-
-With objSheet1
-      checkCounter = .Range("A" & .Rows.Count).End(xlUp).Row
-	  MsgBox checkCounter
-End With
-
-k = 2
-j = 2 
-do while (objSheet1.Cells(k,1).Value <> "") or (k = checkCounter)
-	i = 4
-	do while (objSheet1.Cells(k,i).Value <> "") 'or (i = 5)
-		'MsgBox "k - " & k & "i - " & i & "Color - " & objSheet1.Cells(k,i).Interior.ColorIndex	 
-		If objSheet1.Cells(k,i).Comment.Text <> "" Then
-				TextToFind = objSheet1.Cells(k,i).Comment.Text
-		End If	
-		
-		If (((InStr(TextToFind, "840") > 0) or (InStr(TextToFind, "640") > 0) or (InStr(TextToFind, "БП") > 0)) and (objSheet1.Cells(k,i).Comment.Text <> "")) Then
-		
-			objSheet2.Cells(j,1).Value = objSheet1.Cells(k,1).Value
-			objSheet2.Cells(j,2).Value = objSheet1.Cells(k,2).Value
-			objSheet2.Cells(j,3).Value = objSheet1.Cells(k,i).Value
-			objSheet2.Cells(j,4).Value = objSheet1.Cells(k,i).Comment.Text
-			j = j + 1
-		End If
-	i = i + 1 
-	loop
-	
-k = k + 1 
-loop
-objSheet2.Cells(1,1).Value = "ModuleNumber"
-objSheet2.Cells(1,2).Value = "DateOfRelease"
-objSheet2.Cells(1,3).Value = "DateOfIssue"
-objSheet2.Cells(1,4).Value = "Comment"
-objExcel.DisplayAlerts = true
-objWorkbook1.Close true
-objExcel.DisplayAlerts= True
-objWorkbook2.Close true
-
-Set objWorkbook1 = Nothing
-Set objWorkbook2 = Nothing
- 
+Dim strLine, strContent, outFile, objFSO, objFile, strLineWithData, i, NextLineFlag, Numbers, Symbol, objFSO2, receivedDate 
+Dim counter, k, j, l, m, description, flagDescription, commaCounter, inLineChecker, NumberCatcher, strFile, resultList, counterChecker, moduleNumber, moduleNumberDescription 
+dim arr_number(30), arrNumber 
+resultList  = "C:\Users\bezrukov_mg\Documents\Parser\Stage3 TextParsing\resultList.txt"
+'For j = 23 To 86 -
+	'strFile = "C:\Users\bezrukov_mg\Documents\Parser\Stage3 TextParsing\index2\Акт исследования c ВП №1" & j & ".docx" -
+	strFile = "C:\Users\bezrukov_mg\Documents\Parser\Stage3 TextParsing\index2\Акт исследования c ВП №123.docx"
+	Set oWord = CreateObject("Word.Application")
+	oWord.Visible = false 
+	oWord.Documents.Open strFile
+	oWord.ActiveDocument.SaveAs strFile&".txt", 2
+	oWord.Quit
+	'Application.DisplayAlerts = wdAlertsNone
+	outFile = strFile&".txt"
+	Set objFSO = CreateObject("Scripting.FileSystemObject")
+	Set objFSO2 = CreateObject("Scripting.FileSystemObject")
+	Set objFile = objFSO.OpenTextFile(outFile)
+	Set outputFile = objFSO2.OpenTextFile(resultList, 8)
+	NumberCatcher = false
+	counter = 0 
+	Do While NOT objFile.AtEndOfStream
+	   strLine = objFile.ReadLine 
+	    For i = 1 To Len(strLine)
+			IF (Mid(strLine, i, 14) = "Рекламационный") Then
+				outputFile.Write Mid(strLine, 1, Len(strLine)) & vbCRLF
+			ElseiF (Mid(strLine, i, 3) = "вх.") Then
+				m = i 
+				Do Until Mid(strLine, m, 1) = ")"
+					m=m+1
+				loop 
+				receivedDate = receivedDate + Mid(strLine, m-10, 10)
+			Elseif (Mid(strLine, i, 16) = "АКТ ИССЛЕДОВАНИЯ") Then	
+				outputFile.Write Mid(strLine, 1, Len(strLine)) & vbCRLF
+			Elseif (Mid(strLine, i, 4) = "8. П") Then 
+				outputFile.Write "________________________________" & vbCRLF
+				NumberCatcher = false
+				counterChecker = false				
+			Elseif NumberCatcher and (Mid(strLine, i, 1) = "№") then
+				MsgBox "The symbol № has been found"
+				l = i+2
+				Do Until Mid(strLine, l, 1) = "-"
+						MsgBox Mid(strLine, l, 1)
+						moduleNumber = moduleNumber + Mid(strLine, l, 1)
+						l=l+1
+				loop 
+					moduleNumber = Trim(moduleNumber) 
+				IF Mid(strLine, l, 1) = "-" then 
+					moduleNumberDescription = Trim(receivedDate) & vbTab & moduleNumber & vbTab & Mid(strLine, l+1, Len(strLine)) & vbCRLF
+					outputFile.Write moduleNumberDescription
+					moduleNumber = ""
+				End if 			
+			Elseif (Mid(strLine, i, 4) = "7. У") Then 
+				MsgBox "NumberCatcher = true"
+				NumberCatcher = true	
+			End if
+	   Next	
+	   counter = counter + 1 
+	Loop
+	outputFile.close
+	objFile.close
+	'objFSO.DeleteFile outFile 
+'Next - 
 WScript.Echo "Finished." 
-objExcel.Application.Quit 'close excel
-WScript.Quit
-
-
-
+'objDoc.Close
+'objWord.Quit
