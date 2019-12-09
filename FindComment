@@ -1,5 +1,5 @@
-Dim strLine, strContent, outFile, objFSO, objFile, strLineWithData, i, NextLineFlag, Numbers, Symbol, objFSO2, receivedDate 
-Dim counter, k, j, l, m, description, flagDescription, commaCounter, inLineChecker, NumberCatcher, strFile, resultList, counterChecker, moduleNumber, moduleNumberDescription 
+Dim strLine, strContent, outFile, objFSO, objFile, strLineWithData, i, NextLineFlag, Numbers, Symbol, objFSO2, receivedDate, NumberCatcherTextSix0 
+Dim counter, k, j, l, m, arr_counter, description, flagDescription, commaCounter, inLineChecker, NumberCatcher, strFile, resultList, counterChecker, moduleNumber, moduleNumberDescription 
 dim arr_number(30), arrNumber 
 resultList  = "C:\Users\bezrukov_mg\Documents\Parser\Stage3 TextParsing\resultList.txt"
 'For j = 23 To 86 -
@@ -17,13 +17,16 @@ resultList  = "C:\Users\bezrukov_mg\Documents\Parser\Stage3 TextParsing\resultLi
 	Set objFile = objFSO.OpenTextFile(outFile)
 	Set outputFile = objFSO2.OpenTextFile(resultList, 8)
 	NumberCatcher = false
+	NumberCatcherTextSix = false
 	counter = 0 
+	arr_counter = 1 
+	
 	Do While NOT objFile.AtEndOfStream
 	   strLine = objFile.ReadLine 
 	    For i = 1 To Len(strLine)
 			IF (Mid(strLine, i, 14) = "Рекламационный") Then
 				outputFile.Write Mid(strLine, 1, Len(strLine)) & vbCRLF
-			ElseiF (Mid(strLine, i, 3) = "вх.") Then
+			El seiF (Mid(strLine, i, 3) = "вх.") Then
 				m = i 
 				Do Until Mid(strLine, m, 1) = ")"
 					m=m+1
@@ -35,10 +38,13 @@ resultList  = "C:\Users\bezrukov_mg\Documents\Parser\Stage3 TextParsing\resultLi
 				outputFile.Write "________________________________" & vbCRLF
 				NumberCatcher = false
 				counterChecker = false				
-			Elseif NumberCatcher and (Mid(strLine, i, 1) = "№") then
+			Elseif NumberCatcher and (Mid(strLine, i, 1) = "№") then '7.
 				MsgBox "The symbol № has been found"
 				l = i+2
 				Do Until Mid(strLine, l, 1) = "-"
+						MsgBox "(LBound(arr_number)) " LBound(arr_number)
+						if arr_number(arr_counter) = Mid(strLine, l, 3)
+				
 						MsgBox Mid(strLine, l, 1)
 						moduleNumber = moduleNumber + Mid(strLine, l, 1)
 						l=l+1
@@ -49,9 +55,40 @@ resultList  = "C:\Users\bezrukov_mg\Documents\Parser\Stage3 TextParsing\resultLi
 					outputFile.Write moduleNumberDescription
 					moduleNumber = ""
 				End if 			
+			Elseif NumberCatcherTextSix and (Mid(strLine, i, 1) = "№") then '6.
+				MsgBox "The symbol № has been found 6/"
+				l = i+2
+				Do Until Mid(strLine, l, 1) = "-"
+						'MsgBox "adding arrNumber - " & Mid(strLine, l, 1)
+						arrNumber = arrNumber + Mid(strLine, l, 1)
+						l=l+1
+						IF Mid(strLine, l, 1) = "," then
+							Msgbox "Comma found ,"
+							arrNumber = Trim(arrNumber)
+							arr_number(arr_counter) = arrNumber
+							arr_counter = arr_counter + 1
+							arrNumber = "" 
+							l=l+1
+						End iF 		
+				loop  
+				IF Mid(strLine, l, 1) = "-" then 
+					arrNumber = Trim(arrNumber)
+					arr_number(arr_counter) = arrNumber
+					MsgBox "Len(arr_number(arr_counter))" & arr_number(arr_counter) & "-" & Len(arr_number(arr_counter)) 
+					arrNumber = "" 
+					Do Until arr_counter = 0
+						MsgBox "// arr_number(arr_counter) - arr_counter // " & arr_number(arr_counter) & " - " & arr_counter
+						moduleNumberDescription = Trim(receivedDate) & vbTab & arr_number(arr_counter) & vbTab & Mid(strLine, l+1, Len(strLine)) & vbCRLF
+						outputFile.Write moduleNumberDescription 
+						arr_counter = arr_counter - 1
+					loop 	
+				End if 				
 			Elseif (Mid(strLine, i, 4) = "7. У") Then 
 				MsgBox "NumberCatcher = true"
 				NumberCatcher = true	
+			Elseif (Mid(strLine, i, 5) = "6. Ус") Then 
+				MsgBox "NumberCatcherTextSix = true"
+				NumberCatcherTextSix = true		
 			End if
 	   Next	
 	   counter = counter + 1 
